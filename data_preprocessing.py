@@ -1,10 +1,8 @@
-# data_pre_processing.py
 import os
 import uuid
 import subprocess
 from utils import text_regex_builder
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
 from rank_bm25 import BM25Okapi
 from langchain.document_loaders import DirectoryLoader, NotebookLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -79,14 +77,7 @@ def tokenize_files(query, index, documents, n_results=5):
     tfidf_matrix = tfidf_vectorizer.fit_transform([doc.page_content for doc in documents])
     query_tfidf = tfidf_vectorizer.transform([query])
 
-    # Compute Cosine Similarity scores
-    cosine_sim_scores = cosine_similarity(query_tfidf, tfidf_matrix).flatten()
+    ranked_doc = list(set(bm25_scores.argsort()[::-1]))[:n_results]
 
-    # Combine BM25 and Cosine Similarity scores
-    combined_scores = bm25_scores * 0.5 + cosine_sim_scores * 0.5
-
-    # Get unique top documents
-    unique_top_document_indices = list(set(combined_scores.argsort()[::-1]))[:n_results]
-
-    return [documents[i] for i in unique_top_document_indices]
+    return [documents[i] for i in ranked_doc]
   
