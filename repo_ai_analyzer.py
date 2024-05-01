@@ -15,8 +15,8 @@ RESET_COLOR = "\033[0m"
 model_name = "gpt-3.5-turbo"
 
 
-def main_handler():
-    github_url = input('Enter the Github URL:')
+def main_handler(github_url):
+    #github_url = input('Enter the Github URL:')
     repo_name = github_url.split("/")[-1]
     print("Cloning the repository...")
     with tempfile.TemporaryDirectory() as repo_path:
@@ -50,22 +50,33 @@ def main_handler():
 
             conversation_history = ""
             question_context = Context(index,documents, llm_chain, model_name, repo_name, github_url, conversation_history, file_type_counts, filenames)
-            while True:
-                try:
-                    user_question = input("\n" + WHITE + "Ask a question about the repository (type 'exit:' to quit): " + RESET_COLOR)
-                    if user_question.lower() == "exit:":
-                        break
-                    print("Thinking...")
-                    user_question = format_user_question(user_question)
-
-                    answer = ask_question(user_question, question_context)
-                    print(GREEN + '\nANSWER\n' + answer + RESET_COLOR + '\n')
-                    conversation_history += f"Question: {user_question} \nAnswer: {answer}\n"
-                except Exception as e:
-                    print(f"An error occurred: {e}")
-                    break
+            return question_context
         else:
             print("Failed to clone the repository.")
 
+def generate_response(user_question,question_context):
+    try:
+        #user_question = input("\n" + WHITE + "Ask a question about the repository (type 'exit:' to quit): " + RESET_COLOR)
+        if user_question.lower() == "exit:":
+            exit()
+        print("Thinking...")
+        user_question = format_user_question(user_question)
+
+        answer = ask_question(user_question, question_context)
+        #print(GREEN + '\nANSWER\n' + answer + RESET_COLOR + '\n')
+        #conversation_history += f"Question: {user_question} \nAnswer: {answer}\n"
+        return answer
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        exit()
+
 if __name__ == "__main__":
-    main_handler()
+    github_url = input('Enter the Github URL:')
+    q_c = main_handler(github_url)
+    while True:
+        user_question = input("\n" + WHITE + "Ask a question about the repository (type 'exit:' to quit): " + RESET_COLOR)
+        if user_question.lower() == 'exit:':
+            break
+        answer = generate_response(user_question,q_c)
+        print(GREEN + '\nANSWER\n' + answer + RESET_COLOR + '\n')
+    print("THANK YOU")
